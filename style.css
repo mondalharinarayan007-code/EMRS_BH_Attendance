@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .glossy-header {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #finishModal, #finishModal * { visibility: visible; }
+            #finishModal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white !important; padding: 0 !important; margin: 0 !important; }
+            .no-print { display: none !important; }
+        }
+
+        :root { --app-bg:#F8F7F0; --app-surface:#FFFEFA; --app-primary:#668F71; --app-primary-dark:#426B50; --app-border:#D5DFD1; --app-accent:#C68B62; --app-text:#28372D; }
+        body { background:var(--app-bg) !important; color:var(--app-text); }
+        .glass-card { background:var(--app-surface) !important; border-color:var(--app-border) !important; backdrop-filter:none; }
+        .glossy-header { background:var(--app-primary-dark) !important; box-shadow:0 2px 8px #28372d12 !important; }
+        .tribal-divider { height:10px; margin:7px 0; opacity:.78; background-image:repeating-linear-gradient(135deg, transparent 0 7px, var(--app-accent) 7px 9px, transparent 9px 14px), repeating-linear-gradient(45deg, transparent 0 7px, var(--app-primary) 7px 9px, transparent 9px 14px); border-top:1px solid var(--app-border); border-bottom:1px solid var(--app-border); }
+        .app-logo { object-fit:cover; background:#F8F7F0; border:1px solid var(--app-border); border-radius:50%; }
+        .theme-option { border:1px solid var(--app-border); border-radius:12px; background:var(--app-surface); padding:9px; text-align:left; font-size:12px; font-weight:700; color:var(--app-text); }
+        .theme-option[aria-pressed="true"] { outline:2px solid var(--app-primary); outline-offset:1px; }
+        .theme-swatch { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:5px; vertical-align:-2px; border:1px solid #00000012; }
+        body[data-theme="tribal"] { --app-bg:#F8F7F0; --app-surface:#FFFEFA; --app-primary:#668F71; --app-primary-dark:#426B50; --app-border:#D5DFD1; --app-accent:#C68B62; }
+        body[data-theme="sand"] { --app-bg:#FBF6EC; --app-surface:#FFFCF5; --app-primary:#C9A66B; --app-primary-dark:#80643D; --app-border:#E8D8BC; --app-accent:#D6A96B; }
+        body[data-theme="terracotta"] { --app-bg:#FCF4EF; --app-surface:#FFFCF9; --app-primary:#C68B62; --app-primary-dark:#89563A; --app-border:#EBD5C7; --app-accent:#C68B62; }
+        body[data-theme="sky"] { --app-bg:#F2F8FB; --app-surface:#FCFEFF; --app-primary:#7FB3D5; --app-primary-dark:#3E718F; --app-border:#D0E3EE; --app-accent:#7FB3D5; }
+        body[data-theme="lavender"] { --app-bg:#F7F5FC; --app-surface:#FEFCFF; --app-primary:#A78BFA; --app-primary-dark:#6D5AA8; --app-border:#E2DAF5; --app-accent:#A78BFA; }
+        body[data-theme="slate"] { --app-bg:#F3F6FA; --app-surface:#FFFFFF; --app-primary:#7D9CC8; --app-primary-dark:#456184; --app-border:#D6E0EC; --app-accent:#7D9CC8; }
+        body[data-theme] .bg-emerald-600, body[data-theme] .bg-emerald-700, body[data-theme] .bg-emerald-800 { background-color:var(--app-primary-dark) !important; }
+        body[data-theme] .hover\:bg-emerald-700:hover { background-color:var(--app-primary-dark) !important; filter:brightness(.94); }
+        body[data-theme] .text-emerald-600, body[data-theme] .text-emerald-700, body[data-theme] .text-emerald-800, body[data-theme] .text-emerald-900 { color:var(--app-primary-dark) !important; }
+        body[data-theme] .border-emerald-100, body[data-theme] .border-emerald-200, body[data-theme] .border-emerald-500 { border-color:var(--app-border) !important; }
+        body[data-theme] .bg-emerald-50 { background-color:color-mix(in srgb, var(--app-primary) 13%, white) !important; }
+        body[data-theme] .ring-emerald-400 { --tw-ring-color:var(--app-primary) !important; }
+        .status-late { color:#965F0A !important; background:#FFF4D9 !important; border-color:#E9C66D !important; }
+        #loginScreen { background:var(--app-bg); }
+        @media (max-width:420px) { .header-title { max-width:155px; } .theme-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+/* Dashboard tiles: clear clickable affordance and active filter state */
+.dashboard-tile { cursor:pointer; min-width:0; transition:transform .15s ease, box-shadow .15s ease, outline-color .15s ease; }
+.dashboard-tile:hover { transform:translateY(-1px); box-shadow:0 5px 14px #14251a12; }
+.dashboard-tile:focus-visible { outline:3px solid var(--app-primary); outline-offset:2px; }
+.dashboard-tile-active { outline:2px solid var(--app-primary-dark); outline-offset:1px; background:color-mix(in srgb, var(--app-primary) 10%, var(--app-surface)) !important; }
+@media (max-width:360px) { .dashboard-tile p { font-size:9px; letter-spacing:-.02em; } .dashboard-tile h3 { font-size:13px; } }
+
+/* Mobile-first compact viewport and touch-friendly controls */
+html { min-height:100%; -webkit-text-size-adjust:100%; }
+body { min-height:100dvh; padding-bottom:env(safe-area-inset-bottom); }
+#appShell { min-height:100dvh; }
+@media (max-width:520px) {
+  .header-school { max-width:145px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .glossy-header { padding-top:5px !important; padding-bottom:5px !important; margin-bottom:7px !important; }
+  .glossy-header .app-logo { width:30px !important; height:30px !important; }
+  .glossy-header button { min-height:32px; }
+  .container { max-width:100% !important; }
+  #appShell > .container { padding-left:8px !important; padding-right:8px !important; }
+  .dashboard-tile { padding:8px !important; }
+  .dashboard-tile p { line-height:1.15; }
+  .dashboard-tile h3 { margin-top:2px; }
+  #studentCardContainer { padding-bottom:8px; }
+}
+@media (max-width:360px) { .header-title { max-width:105px !important; } .header-school { max-width:105px; } .glossy-header button { padding-left:6px !important; padding-right:6px !important; font-size:9px !important; } }
