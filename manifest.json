@@ -1,0 +1,23 @@
+{
+  "name": "EMRS Attendance Management PWA",
+  "short_name": "EMRS Attendance",
+  "description": "Eklavya Model Residential School Attendance Management",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F8F7F0",
+  "theme_color": "#426B50",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

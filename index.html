@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMRS Boys Hostel Birbhum - Attendance</title>
+    <!-- Mobile Web App Metas for Direct Access -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#064e3b">
+    <meta name="application-name" content="EMRS Attendance">
+    <link rel="manifest" href="manifest.json">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS (xlsx) Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body class="text-slate-800 antialiased pb-8" data-theme="tribal">
+    <section id="loginScreen" class="fixed inset-0 z-[100] flex items-center justify-center p-5">
+      <div class="w-full max-w-sm rounded-2xl border p-5 shadow-sm" style="background:var(--app-surface);border-color:var(--app-border)">
+        <div class="flex flex-col items-center text-center gap-2">
+          <img src="emrs-logo.jpg" alt="Eklavya Model Residential School logo" class="app-logo w-32 h-32">
+          <h1 class="text-lg font-extrabold" style="color:var(--app-primary-dark)">EMRS Boys Hostel Attendance</h1>
+          <p class="text-xs text-slate-600">Eklavya Model Residential School</p>
+          <div class="tribal-divider w-full"></div>
+        </div>
+        <form class="mt-4 space-y-3" onsubmit="return unlockApp(event)">
+          <label for="appPassword" class="block text-xs font-bold text-slate-700">Enter password</label>
+          <input id="appPassword" type="password" autocomplete="current-password" inputmode="numeric" class="w-full rounded-xl border px-3 py-3 text-sm outline-none focus:ring-2" style="border-color:var(--app-border);background:var(--app-bg)" placeholder="Password" required>
+          <p id="loginError" class="hidden text-xs font-semibold text-rose-600">Incorrect password. Please try again.</p>
+          <button type="submit" class="w-full rounded-xl px-4 py-3 text-sm font-bold text-white" style="background:var(--app-primary-dark)">Unlock Attendance</button>
+        </form>
+        <p class="mt-3 text-center text-[10px] text-slate-500">Default password: <strong>2013</strong></p>
+      </div>
+    </section>
+    <div id="appShell" class="hidden">
+
+    <!-- Glossy Header with 100% Mobile-Compatible Logo -->
+    <header class="glossy-header text-white py-1.5 px-2.5 sm:py-2 sm:px-4 mb-2 sticky top-0 z-40 shadow-md">
+        <div class="container mx-auto flex justify-between items-center max-w-4xl">
+            <div class="flex items-center gap-2">
+                <img src="emrs-logo.jpg" alt="EMRS school logo" class="app-logo w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
+                <div>
+                    <h1 class="header-title text-xs sm:text-sm font-black tracking-tight">EMRS Attendance</h1>
+                    <p class="header-school text-[9px] sm:text-[10px] text-emerald-100">Eklavya Model Residential School</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <div class="bg-white/15 backdrop-blur-md px-2 py-1 rounded-lg border border-white/20 text-[10px] font-medium hidden sm:block">
+                    📅 <span id="currentDate" class="font-bold"></span>
+                </div>
+                <div class="flex gap-1">
+                  <button onclick="openHistoryModal()" class="bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold border border-white/25">🗓 History</button>
+                  <button onclick="openBackupModal()" class="bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold border border-white/25">💾 Backup</button>
+                  <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white/30 text-white px-2 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold border border-white/25">⚙️</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-3 max-w-4xl">
+        
+        <!-- Controls: Class Tabs & Action Buttons -->
+        <div class="glass-card p-3 rounded-2xl shadow-sm mb-3 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div id="classTabsContainer" class="flex overflow-x-auto pb-1 gap-1.5 scrollbar-none w-full sm:w-auto">
+                <!-- Dynamically loaded class tabs -->
+            </div>
+
+            <div class="flex gap-2 w-full sm:w-auto justify-end">
+                <button onclick="openFinishModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition shadow flex items-center justify-center gap-1">📋 Finish Attendance</button>
+                <button onclick="exportAttendanceListExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition shadow flex items-center gap-1">📊 Excel Report</button>
+            </div>
+        </div>
+
+        <!-- Dashboard KPI Row 1: whole-hostel totals; click a tile to filter the matching students -->
+        <div class="grid grid-cols-3 gap-2 mb-2">
+            <button type="button" id="tileTotalStudents" onclick="applyDashboardFilter('all')" class="dashboard-tile glass-card p-2.5 rounded-xl shadow-sm border-l-4 border-emerald-500 text-left" aria-label="Show all students">
+                <p class="text-slate-500 text-[10px] font-semibold uppercase">Total Students</p>
+                <h3 id="globalStrength" class="text-sm font-black text-emerald-600">0</h3>
+            </button>
+            <button type="button" id="tileTotalAbsent" onclick="applyDashboardFilter('Absent')" class="dashboard-tile glass-card p-2.5 rounded-xl shadow-sm border-l-4 border-rose-500 text-left" aria-label="Show all absent students">
+                <p class="text-slate-500 text-[10px] font-semibold uppercase">Total Absent</p>
+                <h3 id="globalAbsent" class="text-sm font-black text-rose-600">0</h3>
+            </button>
+            <button type="button" id="tileTotalPresent" onclick="applyDashboardFilter('Present')" class="dashboard-tile glass-card p-2.5 rounded-xl shadow-sm border-l-4 border-blue-500 text-left" aria-label="Show all present students">
+                <p class="text-slate-500 text-[10px] font-semibold uppercase">Total Present</p>
+                <h3 id="globalPresent" class="text-sm font-black text-blue-600">0</h3>
+            </button>
+        </div>
+        <!-- Dashboard KPI Row 2: selected-class totals -->
+        <div class="grid grid-cols-3 gap-2 mb-3">
+            <button type="button" id="tileClassPresent" onclick="applyDashboardFilter('class:Present')" class="dashboard-tile glass-card p-2.5 rounded-xl shadow-sm border-l-4 border-emerald-500 text-left" aria-label="Show present students in selected class">
+                <p class="text-slate-500 text-[10px] font-semibold uppercase">Class Present</p>
+                <h3 id="classPresent" class="text-sm font-black text-emerald-600">0</h3>
+            </button>
+            <button type="button" id="tileClassAbsent" onclick="applyDashboardFilter('class:Absent')" class="dashboard-tile glass-card p-2.5 rounded-xl shadow-sm border-l-4 border-rose-500 text-left" aria-label="Show absent students in selected class">
+                <p class="text-slate-500 text-[10px] font-semibold uppercase">Class Absent</p>
+                <h3 id="classAbsent" class="text-sm font-black text-rose-600">0</h3>
+            </button>
+            <button type="button" id="tileClassLate" onclick="applyDashboardFilter('class:Late')" class="dashboard-tile glass-card p-2.5 rounded-xl shadow-sm text-left" style="border-left:4px solid #D6A23E" aria-label="Show late students in selected class">
+                <p class="text-slate-500 text-[10px] font-semibold uppercase">Class Late</p>
+                <h3 id="classLate" class="text-sm font-black" style="color:#A66B08">0</h3>
+            </button>
+        </div>
+        <div id="dashboardFilterBar" class="hidden mb-2 flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs" style="background:var(--app-surface);border:1px solid var(--app-border)">
+          <span id="dashboardFilterLabel" class="font-bold">Filtered students</span>
+          <button type="button" onclick="clearDashboardFilter()" class="rounded-lg px-2.5 py-1.5 font-bold" style="background:var(--app-primary-dark);color:white">Clear filter</button>
+        </div>
+
+        <!-- Student Card List Container -->
+        <div id="studentCardContainer" class="space-y-2">
+            <!-- Dynamic Cards -->
+        </div>
+
+    </div>
+
+    <!-- Date-wise History Modal -->
+    <div id="historyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-2 z-50">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-3 sm:p-5 max-h-[94dvh] overflow-y-auto">
+        <div class="flex items-center justify-between gap-2 mb-3 border-b pb-2"><h3 class="text-sm font-bold text-emerald-700">🗓 Date-wise Attendance History</h3><button onclick="closeModal('historyModal')" class="text-xl font-bold">×</button></div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+          <label class="text-[11px] font-bold">Date<input id="historyDate" type="date" class="mt-1 w-full rounded-lg border p-2 text-sm" /></label>
+          <label class="text-[11px] font-bold">Class<select id="historyClass" class="mt-1 w-full rounded-lg border p-2 text-sm"></select></label>
+          <button onclick="showHistory()" class="rounded-lg px-3 py-2 text-xs font-bold text-white self-end" style="background:var(--app-primary-dark)">Show Attendance</button>
+        </div>
+        <div id="historySummary" class="text-xs mb-2"></div>
+        <div id="historyResults" class="space-y-1"></div>
+        <div class="flex flex-wrap gap-2 mt-3"><button onclick="exportHistoryCSV()" class="rounded-lg px-3 py-2 text-xs font-bold text-white" style="background:var(--app-primary-dark)">Export CSV</button><button onclick="closeModal('historyModal')" class="rounded-lg bg-slate-800 text-white px-3 py-2 text-xs font-bold">Close</button></div>
+      </div>
+    </div>
+
+    <!-- Backup / Restore Modal -->
+    <div id="backupModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-2 z-50">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-4 sm:p-5 max-h-[94dvh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-3 border-b pb-2"><h3 class="text-sm font-bold text-emerald-700">💾 Backup & Restore</h3><button onclick="closeModal('backupModal')" class="text-xl font-bold">×</button></div>
+        <p class="text-xs text-slate-600 mb-3">Backup includes student roster, attendance history and theme. Keep the downloaded file somewhere safe.</p>
+        <button onclick="downloadBackup()" class="w-full rounded-xl px-3 py-3 text-sm font-bold text-white mb-3" style="background:var(--app-primary-dark)">Download Backup</button>
+        <label class="block text-xs font-bold">Restore from backup JSON<input id="restoreFile" type="file" accept="application/json,.json" class="mt-2 block w-full text-xs" /></label>
+        <button onclick="restoreBackup()" class="w-full rounded-xl px-3 py-3 text-sm font-bold text-white mt-3 bg-rose-600">Restore Backup</button>
+        <p class="text-[10px] text-rose-700 mt-2">Restore replaces the current roster and history. A backup will be downloaded first. Only restore a trusted file.</p>
+      </div>
+    </div>
+
+    <!-- Settings Modal (Manage Classes & Student Lists) -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-5 relative border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                <h3 class="text-sm sm:text-base font-bold text-emerald-600">⚙️ Hostel System Settings</h3>
+                <button onclick="closeModal('settingsModal')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+            </div>
+
+            <!-- Add New Class Section -->
+            <div class="mb-4 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                <h4 class="text-xs font-bold text-emerald-900 mb-1.5">➕ Add New Class</h4>
+                <div class="flex gap-2">
+                    <input type="text" id="newClassNameInput" placeholder="e.g. XIII or Nursery" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <button onclick="addNewClass()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs whitespace-nowrap shadow">Add Class</button>
+                </div>
+            </div>
+
+            <!-- Class & Student List Editor Section -->
+            <div class="mb-3">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xs font-bold text-slate-700">✏️ Edit Class & Student List (Includes Vacant Slots)</h4>
+                    <select id="settingsClassSelect" onchange="loadSettingsClassStudents()" class="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-emerald-600 focus:outline-none">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div id="settingsStudentListContainer" class="space-y-2 max-h-60 overflow-y-auto p-2 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="mb-4 rounded-xl p-3" style="background:var(--app-bg);border:1px solid var(--app-border)">
+              <h4 class="mb-2 text-xs font-bold" style="color:var(--app-primary-dark)">🎨 Colour Theme</h4>
+              <div class="theme-grid grid grid-cols-3 gap-2">
+                <button type="button" class="theme-option" data-theme-choice="tribal" aria-pressed="true" onclick="setTheme('tribal')"><span class="theme-swatch" style="background:#668F71"></span>Tribal Green</button>
+                <button type="button" class="theme-option" data-theme-choice="sand" aria-pressed="false" onclick="setTheme('sand')"><span class="theme-swatch" style="background:#D6B77A"></span>Warm Sand</button>
+                <button type="button" class="theme-option" data-theme-choice="terracotta" aria-pressed="false" onclick="setTheme('terracotta')"><span class="theme-swatch" style="background:#C68B62"></span>Terracotta</button>
+                <button type="button" class="theme-option" data-theme-choice="sky" aria-pressed="false" onclick="setTheme('sky')"><span class="theme-swatch" style="background:#7FB3D5"></span>Sky Blue</button>
+                <button type="button" class="theme-option" data-theme-choice="lavender" aria-pressed="false" onclick="setTheme('lavender')"><span class="theme-swatch" style="background:#A78BFA"></span>Lavender</button>
+                <button type="button" class="theme-option" data-theme-choice="slate" aria-pressed="false" onclick="setTheme('slate')"><span class="theme-swatch" style="background:#7D9CC8"></span>Slate Blue</button>
+              </div>
+            </div>
+            <div class="mb-4 rounded-xl p-3" style="background:var(--app-bg);border:1px solid var(--app-border)">
+              <h4 class="mb-2 text-xs font-bold" style="color:var(--app-primary-dark)">🔐 Change App Password</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input id="newAppPassword" type="password" inputmode="numeric" minlength="4" placeholder="New password (min 4 chars)" class="w-full rounded-lg border px-3 py-2 text-xs" style="border-color:var(--app-border)">
+                <input id="confirmAppPassword" type="password" inputmode="numeric" minlength="4" placeholder="Confirm new password" class="w-full rounded-lg border px-3 py-2 text-xs" style="border-color:var(--app-border)">
+              </div>
+              <button type="button" onclick="changeAppPassword()" class="mt-2 rounded-lg px-3 py-2 text-xs font-bold text-white" style="background:var(--app-primary-dark)">Update Password</button>
+              <p class="mt-1 text-[10px] text-slate-500">Password is stored on this device. This app-only lock is not server-level security.</p>
+            </div>
+            <div class="mt-4 flex justify-between items-center pt-2 border-t border-slate-100">
+                <button onclick="addNewStudentSlot()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl font-semibold text-xs transition">➕ Add Student / Slot</button>
+                <div class="flex gap-2">
+                    <button onclick="saveSettingsChanges()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded-xl font-semibold text-xs transition shadow">Save Changes</button>
+                    <button onclick="closeModal('settingsModal')" class="bg-slate-800 text-white px-3 py-1.5 rounded-xl font-semibold text-xs transition">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Finish Attendance Modal -->
+    <div id="finishModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-5 relative border border-slate-100">
+            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                <h3 class="text-sm sm:text-base font-bold text-emerald-600">📋 Final Attendance Summary</h3>
+                <button onclick="closeModal('finishModal')" class="text-slate-400 hover:text-slate-600 font-bold text-xl no-print">&times;</button>
+            </div>
+            
+            <div class="mb-3 text-[11px] flex justify-between bg-emerald-50 p-2 rounded-xl font-medium text-emerald-900 border border-emerald-100">
+                <span>📅 Date: <strong id="reportDate"></strong></span>
+                <span>⏰ Time: <strong id="reportClockTime"></strong></span>
+            </div>
+
+            <div id="summaryContent" class="space-y-2 text-xs">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div class="mt-4 flex justify-end gap-2 pt-2 border-t border-slate-100 no-print">
+                <button onclick="exportToPDF()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl font-semibold text-xs transition">📄 Print / PDF (1 Page)</button>
+                <button onclick="closeModal('finishModal')" class="bg-slate-800 text-white px-3 py-1.5 rounded-xl font-semibold text-xs transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-3 sm:p-5 relative border border-slate-100 max-h-[94dvh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-3 border-b pb-2">
+                <h3 class="text-sm font-bold text-emerald-600">👤 Student Profile</h3>
+                <button onclick="closeModal('profileModal')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <div id="profileContent" class="space-y-1.5 text-slate-600 text-xs bg-slate-50 p-3 rounded-xl"></div>
+            <div class="mt-4 flex justify-end">
+                <button onclick="closeModal('profileModal')" class="bg-slate-800 text-white px-4 py-1.5 rounded-xl font-semibold text-xs">Close</button>
+            </div>
+        </div>
+    </div>
+
+    </div> <!-- /appShell -->
+
+    <!-- JavaScript Application Logic -->
+    <script src="./js/students.js"></script>
+    <script src="./js/settings.js"></script>
+    <script src="./js/reports.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+</html>

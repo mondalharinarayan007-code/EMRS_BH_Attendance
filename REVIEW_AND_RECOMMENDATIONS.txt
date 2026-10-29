@@ -1,0 +1,62 @@
+EMRS Attendance V3 — Code Review & Improvement Plan
+Review date: 29 October 2026
+Source reviewed: EMRS_Attendance_PWA_Updated.zip
+
+WHAT WAS SEPARATED
+1. index.html — page structure and interface markup.
+2. css/style.css — inline CSS moved to a separate stylesheet. Existing six themes retained: Tribal Green, Warm Sand, Terracotta, Sky Blue, Lavender, Slate Blue.
+3. js/students.js — initial student roster for Classes VI–XII and vacant-slot generation.
+4. js/settings.js — theme, app-password change, class/student editing functions.
+5. js/reports.js — Excel export and print/PDF functions.
+6. js/app.js — app lock/login, date display, class navigation, attendance controls, summary UI, student profile and service-worker registration.
+7. Existing PWA assets retained: manifest.json, service-worker.js, icon-192.png, icon-512.png, emrs-logo.jpg.
+
+CHECKS PERFORMED
+- All four JavaScript files pass Node.js syntax checks.
+- Main HTML references the new CSS/JS paths.
+- The initial roster still includes Classes VI, VII, VIII, IX, X, XI and XII.
+- The original source ZIP was not modified; this is a separate modular copy.
+- Full browser end-to-end testing was not completed in this environment. Test login, attendance buttons, class/student settings, Excel export, print/PDF, theme switching and PWA install before live deployment.
+
+IMPORTANT EXISTING LIMITATIONS FOUND
+1. Attendance history: attendance status is saved on each student record in localStorage. Changing today's status overwrites the previous status; the app does not yet maintain a date-wise historical register.
+2. Multi-device sync: localStorage is device/browser-specific. Data entered on one phone will not automatically appear on another phone or a computer.
+3. Authentication: default password 2013 and password changes are implemented as a client-side app lock. This is not secure server authentication; browser storage/code can be inspected or bypassed.
+4. Data backups: no dedicated export/import backup-and-restore workflow was identified in the current interface.
+5. External dependencies: Tailwind CSS and SheetJS are loaded from CDNs; the app may lose styling or Excel export if internet/CDN access is unavailable.
+6. Reports: Excel exports current status values for all classes, not a selectable date range from a historical attendance database. PDF uses browser printing.
+7. Data integrity: student names and class rosters can be edited in settings, but validation, duplicate-ID checks and an audit trail are not implemented as a robust administrative system.
+
+RECOMMENDED GRAPHICS / UX IMPROVEMENTS
+Priority A — recommended first
+- Keep the existing light palette and logo-matched colours; make Emerald/Tribal Green the default, with Warm Sand, Sky Blue, Terracotta, Lavender and Slate as alternatives.
+- Improve dashboard hierarchy: compact top header with logo, school name, date and theme; clear KPI cards for Strength, Present, Late, Absent and Attendance %.
+- Add visible status chips and a small legend. Never rely on colour alone; include text/icons for Present, Late and Absent.
+- Improve mobile usability: sticky class selector, large touch targets, compact student cards, fixed bottom action bar where appropriate, and no horizontal overflow.
+- Improve contrast for small labels and ensure focus indicators, keyboard access and reduced-motion support.
+- Add loading/saving feedback, unsaved-change warnings, and clear success/error messages.
+
+Priority B — high-value functionality
+- Date-wise attendance sessions with explicit date selection and separate saved records per class/date.
+- Mark all Present, then quickly change Late/Absent; add confirmation before finalizing a day's attendance.
+- Attendance correction workflow with reason, editor identity and timestamp.
+- Daily/monthly reports, class-wise percentage, student-wise attendance history, configurable date range, and Excel/PDF export.
+- Backup/restore and roster import/export with CSV/XLSX validation and preview before applying changes.
+- Student profile fields such as guardian/contact and hostel details only if the school needs them and can protect that data appropriately.
+
+Priority C — architecture and administration
+- If multiple staff/devices will use the app, connect a central database and server-side authentication/authorization (e.g. Supabase) rather than relying on localStorage.
+- Define roles such as Principal and Warden; restrict reports, edits and settings by role. Keep security-critical rules on the server.
+- Add audit logs for attendance marking, corrections, roster changes, exports and settings changes.
+- Add scheduled backups, data retention rules, and recovery tests.
+- Bundle or pin external libraries locally for more reliable offline use; review service-worker cache/versioning before deployment.
+
+IMPLEMENTATION CAUTION
+This package only separates existing code and preserves the current behaviour/data model. The recommended new features above have not been implemented. Before adding them, agree on the required workflow and data fields, then implement in stages and test against a copy of the data.
+
+
+IMPLEMENTED IN THIS UPDATE
+- Dashboard KPI cards arranged in two rows as requested. Row 1: Total Students, Total Absent, Total Present. Row 2: Class Present, Class Absent, Class Late.
+- KPI tiles are interactive. Global tiles show matching student records across all classes; class status tiles show matching records in the selected class. A clear-filter control restores the selected class list. Status updates made from a filtered list save against the correct class.
+- Password screen heading changed to “EMRS Boys Hostel Attendance”; “Eklavya Model Residential School” remains directly underneath.
+- Added visual active state, hover and keyboard focus styles for clickable tiles.
